@@ -1,0 +1,3 @@
+cachedir/**
+__pycache__/**
+logs/**
