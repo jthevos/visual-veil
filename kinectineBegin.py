@@ -8,25 +8,11 @@
 
 
 from kinectineServer import * 
-from kinectine9 import *
+from kinectine import *
 
 #####  Start the Server
 server = KuatroServer(verbose = 0)
 
-##### Start the Client
-#import kuatroMouseClient
-# kinectClient = KuatroKinectClient() # Requires that a Kinect is connected to the computer.
-
 ##### Start the View
 view = Kinectine()
 
-# wait 5 seconds for server to start properly before starting client
-#from time import sleep
-#sleep(5)
-
-##### Now, also start the CPython client
-#from subprocess import call
-#call(["python", "kuatroKinectClientv2PYTHON.py"])
-
-import os
-# os.system("python kuatroKinectClientv2PYTHON.py")
