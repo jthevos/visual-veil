@@ -2,3 +2,4 @@ cachedir/**
 __pycache__/**
 logs/**
 *.class
+*.sh
