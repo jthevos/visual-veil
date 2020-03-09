@@ -175,6 +175,8 @@ function draw() {
 	background(0);
 	noStroke();
 
+	translate(-width / 2, -height / 2);   // adjust for WEBGL's coordinate system
+
 	for (let i = 0; i < particleSystems.length; i++) {
 		// Trim end of trail.
 		particleSystems[i].trail.push([mouseX, mouseY]);
@@ -204,8 +206,6 @@ function draw() {
 				//particleSystems[i].particles.push(new Particle(mouse.x, mouse.y, pmouseX, pmouseY ));
 			}
 		}
-
-		translate(-width / 2, -height / 2);
 
 		// Move and kill particles.
 		for (let j = particleSystems[i].particles.length - 1; j > -1; j--) {
