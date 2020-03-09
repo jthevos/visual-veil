@@ -146,19 +146,19 @@ function setup() {
 	setupOsc(57111, 57110);
 
 
-	colors = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
+	//colors = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
 	colors2 = ["#ff3377", "#ff5533", "#ffbb33", "#ddff33", "#77ff33"];
 
-	p = new ParticleSystem(colors);
+	//p = new ParticleSystem(colors);
 	p2 = new ParticleSystem(colors2);
-	particleSystems.push(p);
+	//particleSystems.push(p);
 	particleSystems.push(p2);
+	//particleSystems.push(p3);
 
-
-  // let canvas = createCanvas(
-	// 	min(windowWidth, windowHeight),
-	// 	min(windowWidth, windowHeight),
-	// 	WEBGL);
+	// let canvas = createCanvas(
+  	// 	min(windowWidth, windowHeight),
+  	// 	min(windowWidth, windowHeight),
+  	// 	WEBGL);
 
   let canvas = createCanvas(
 		windowWidth,
