@@ -1,5 +1,5 @@
 cachedir/**
-__pycache__/**
+**/__pycache__/**
 logs/**
 *.class
 *.sh
