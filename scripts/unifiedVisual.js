@@ -143,8 +143,12 @@ function preload() {
 
 function setup() {
 	pixelDensity(1);
+<<<<<<< HEAD
 	//setupOsc(57110, 57111);
 	setupOsc(6000,6001);
+=======
+	setupOsc(57111, 57110);
+>>>>>>> f0858f9e8b2d96f73b20211bc4ca5da5f66ed0b7
 
 	colors = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
 	colors2 = ["#ff3377", "#ff5533", "#ffbb33", "#ddff33", "#77ff33"];
@@ -154,11 +158,10 @@ function setup() {
 	particleSystems.push(p);
 	particleSystems.push(p2);
 
-
-  // let canvas = createCanvas(
-	// 	min(windowWidth, windowHeight),
-	// 	min(windowWidth, windowHeight),
-	// 	WEBGL);
+	// let canvas = createCanvas(
+  	// 	min(windowWidth, windowHeight),
+  	// 	min(windowWidth, windowHeight),
+  	// 	WEBGL);
 
   let canvas = createCanvas(
 		windowWidth,
@@ -174,6 +177,8 @@ function setup() {
 function draw() {
 	background(0);
 	noStroke();
+
+	translate(-width / 2, -height / 2);   // adjust for WEBGL's coordinate system
 
 	for (let i = 0; i < particleSystems.length; i++) {
 		// Trim end of trail.
@@ -204,8 +209,6 @@ function draw() {
 				//particleSystems[i].particles.push(new Particle(mouse.x, mouse.y, pmouseX, pmouseY ));
 			}
 		}
-
-		translate(-width / 2, -height / 2);
 
 		// Move and kill particles.
 		for (let j = particleSystems[i].particles.length - 1; j > -1; j--) {
