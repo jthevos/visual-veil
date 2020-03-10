@@ -5,5 +5,5 @@
 :: there is a 10 second delay on the execution of the client.
 :: %cd% = current directory
 
-start cmd /k "TIMEOUT 10 && python %cd%\python\kuatroKinectClientv2PYTHON.py"
+start cmd /k "TIMEOUT 10 && python %cd%\python\kinectineClient.py"
 jython -i %cd%\python\kinectineBegin.py

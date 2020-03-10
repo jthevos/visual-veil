@@ -143,8 +143,8 @@ function preload() {
 
 function setup() {
 	pixelDensity(1);
-	setupOsc(57111, 57110);
-
+	//setupOsc(57110, 57111);
+	setupOsc(6000,6001);
 
 	colors = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
 	colors2 = ["#ff3377", "#ff5533", "#ffbb33", "#ddff33", "#77ff33"];
@@ -243,7 +243,7 @@ function draw() {
 			for (let j = 0; j < particleSystems[i].trail.length; j++) {
 				point(particleSystems[i].trail[j][0], particleSystems[i].trail[j][1]);
 			}
-		}
+		};
 	}
 
 }
@@ -265,6 +265,7 @@ function sendOsc(address, value) {
 }
 
 function setupOsc(oscPortIn, oscPortOut) {
+	console.log("i am in setup osc");
 	socket = io.connect('http://127.0.0.1:8081', { port: 8081, rememberTransport: false });
 	socket.on('connect', function() {
 		socket.emit('config', {
@@ -276,6 +277,7 @@ function setupOsc(oscPortIn, oscPortOut) {
 		isConnected = true;
 	});
 	socket.on('message', function(msg) {
+		console.log("im in the /kuatro/processing message");
 		if (msg[0] == '#bundle') {
 			for (var i=2; i<msg.length; i++) {
 				receiveOsc(msg[i][0], msg[i].splice(1));
