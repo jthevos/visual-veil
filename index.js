@@ -6,10 +6,8 @@ const app = express();
 const osc = require('node-osc');
 const io = require('socket.io')(8083);
 
-
 let oscServer, oscClient;
 let isConnected = false;
-
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.listen(3000);
@@ -26,6 +24,7 @@ io.sockets.on('connection', function (socket) {
 		    oscClient.send('/status', socket.sessionId + ' connected');
 			oscServer.on('message', function(msg, rinfo) {
 				socket.emit("message", msg);
+				console.dir(msg);
 			});
 			socket.emit("connected", 1);
 		});

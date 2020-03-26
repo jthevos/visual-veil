@@ -155,7 +155,7 @@ function preload() {
 
 function setup() {
 	pixelDensity(1);
-	setupOsc(57111, 13000);
+	setupOsc(13000, 57111);
 
 	colors = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
 
@@ -302,14 +302,11 @@ function setupOsc(oscPortIn, oscPortOut) {
 	console.log(oscPortIn, oscPortOut);
 	socket = io.connect('http://127.0.0.1:8083', { port: 8083, rememberTransport: false });
 	socket.on('connect', function() {
-		socket.emit('config', {
-			server: { port: 13000,  host: 'http://127.0.0.1'},
-			client: { port: 57111, host: 'http://127.0.0.1'}
-		});
-	});
-	socket.on('connect', function() {
-		console.log("I AM CONNECTED");
 		isConnected = true;
+		socket.emit('config', {
+			server: { port: oscPortIn,  host: 'http://127.0.0.1'},
+			client: { port: oscPortOut, host: 'http://127.0.0.1'}
+		});
 	});
 	socket.on('message', function(msg) {
 		console.log("in .on message");

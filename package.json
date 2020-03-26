@@ -28,5 +28,8 @@
   "bugs": {
     "url": "https://github.com/jthevos/visual-veil/issues"
   },
-  "homepage": "https://github.com/jthevos/visual-veil#readme"
+  "homepage": "https://github.com/jthevos/visual-veil#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
 }
