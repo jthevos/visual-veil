@@ -3,3 +3,4 @@ cachedir/**
 logs/**
 *.class
 *.sh
+node_modules
