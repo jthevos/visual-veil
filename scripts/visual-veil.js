@@ -251,8 +251,22 @@ function mousePressed() {
 
 // OSC stuff
 
-function receiveOsc(address, value) {
-	console.log("received OSC: " + address + ", " + value);
+function receiveOsc(address, message) {
+	/*
+	This function handles the receipt of all OSC messages.
+	It performs two important operations. First, it retreives
+	the raw x and y coordinates from the Kinect. Second, it
+	sanitizes these coordinates. Once sanitized, the x/y
+	coordinates are sent to the view for display.
+	*/
+
+	if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
+		let rawX = abs(message.get(0).floatValue());
+		let rawY = abs(message.get(1).floatValue());
+
+		let x = mapValue(rawX, 100, 700, 1900, 0);
+		let y = mapValue(rawY, 100, 700, 0, 1900);
+	}
 }
 
 function sendOsc(address, value) {
