@@ -3,5 +3,6 @@ cachedir/**
 logs/**
 *.class
 *.sh
-node_modules/**
+node_modules/*
 notes.txt
+package-lock.json
