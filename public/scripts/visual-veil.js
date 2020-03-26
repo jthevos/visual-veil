@@ -10,17 +10,16 @@ const MAX_PARTICLE_COUNT = 70;
 const MAX_TRAIL_COUNT = 30;
 
 // we need a handle to the socket to send our osc values
-var socket;
-var isConnected;
+let socket;
+let isConnected;
 
 // globals
-var shaded = true;
-var theShader;
-var shaderTexture;
+let shaded = true;
+let theShader;
+let shaderTexture;
 
 // empty list to hold each user's particle systems
 let particleSystems = [];
-
 
 class Particle {
 	constructor(x, y, vx, vy) {
@@ -40,6 +39,11 @@ class Particle {
 }
 
 class ParticleSystem {
+	/*
+	This class encapsulates a system of particles. We need this because
+	we want this code to accomodate multiple concurrent users. Each user
+	will control one instance of several particle systems.
+	*/
 	constructor(colorScheme) {
 		this.colorScheme = colorScheme;
 		this.trail = [];
@@ -49,7 +53,14 @@ class ParticleSystem {
 	}
 
 	serializeParticles() {
-
+		/*
+		We serialize a system's particles into a JSON object because
+		each call of the draw() function must have all of this information
+		in order to properly render. Using JSON here is appropriate because
+		otherwise we would need three separate functions each returning
+		one dimension of this three dimensional object.
+		This function is called 30 times per second.
+		*/
 		let data = { "trails": [], "particles": [], "colors": [] };
 
 
@@ -134,7 +145,6 @@ let fragShader = `
 `;
 
 
-
 var colorScheme = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
 var trail = [];
 var particles = [];
@@ -145,7 +155,7 @@ function preload() {
 
 function setup() {
 	pixelDensity(1);
-	setupOsc(57111, 57110);
+	setupOsc(57111, 13000);
 
 	colors = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
 
@@ -174,6 +184,11 @@ function draw() {
 
 	translate(-width / 2, -height / 2);   // adjust for WEBGL's coordinate system
 
+	generate();
+
+}
+
+function generate() {
 	for (let i = 0; i < particleSystems.length; i++) {
 		// Trim end of trail.
 		particleSystems[i].trail.push([mouseX, mouseY]);
@@ -200,7 +215,6 @@ function draw() {
 			if (mouse.mag() > 10) {
 				mouse.normalize();
 				particleSystems[i].particles.push(new Particle(pmouseX, pmouseY, mouse.x, mouse.y));
-				//particleSystems[i].particles.push(new Particle(mouse.x, mouse.y, pmouseX, pmouseY ));
 			}
 		}
 
@@ -229,8 +243,9 @@ function draw() {
 			texture(shaderTexture);
 
 			rect(0, 0,windowWidth, windowHeight);
+
 		} else {
-			// Display points.
+			// Display only points.
 			stroke(255, 200, 0);
 			for (let j = 0; j < particleSystems[i].particles.length; j++) {
 				point(particleSystems[i].particles[j].pos.x, particleSystems[i].particles[j].pos.y);
@@ -242,7 +257,6 @@ function draw() {
 			}
 		}
 	}
-
 }
 
 function mousePressed() {
@@ -251,7 +265,17 @@ function mousePressed() {
 	}
 }
 
-// OSC stuff
+function mapValue(value, min, max, minTarget, maxTarget) {
+	if (value < min || value > max) {
+		console.log('invalid range');
+	} else {
+		let normalizedValue = (value - min) / (max - min);
+		let result = normalizedValue * (maxTarget - minTarget) + minTarget;
+		return Math.trunc(result);
+	}
+}
+
+// OSC
 
 function receiveOsc(address, message) {
 	/*
@@ -262,31 +286,33 @@ function receiveOsc(address, message) {
 	coordinates are sent to the view for display.
 	*/
 
-	if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
-		let rawX = abs(message.get(0).floatValue());
-		let rawY = abs(message.get(1).floatValue());
+	console.log("received OSC: " + address + ", " + message);
 
-		let x = mapValue(rawX, 100, 700, 1900, 0);
-		let y = mapValue(rawY, 100, 700, 0, 1900);
-	}
-}
-
-function sendOsc(address, value) {
-	socket.emit('message', [address, value]);
+	// if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
+	//
+	// 	let rawX = abs(message.get(0).floatValue());
+	// 	let rawY = abs(message.get(1).floatValue());
+	//
+	// 	let x = mapValue(rawX, 100, 700, 1900, 0);
+	// 	let y = mapValue(rawY, 100, 700, 0, 1900);
+	// }
 }
 
 function setupOsc(oscPortIn, oscPortOut) {
-	socket = io.connect('http://127.0.0.1:8081', { port: 8081, rememberTransport: false });
+	console.log(oscPortIn, oscPortOut);
+	socket = io.connect('http://127.0.0.1:8083', { port: 8083, rememberTransport: false });
 	socket.on('connect', function() {
 		socket.emit('config', {
-			server: { port: oscPortIn,  host: '127.0.0.1'},
-			client: { port: oscPortOut, host: '127.0.0.1'}
+			server: { port: 13000,  host: 'http://127.0.0.1'},
+			client: { port: 57111, host: 'http://127.0.0.1'}
 		});
 	});
 	socket.on('connect', function() {
+		console.log("I AM CONNECTED");
 		isConnected = true;
 	});
 	socket.on('message', function(msg) {
+		console.log("in .on message");
 		if (msg[0] == '#bundle') {
 			for (var i=2; i<msg.length; i++) {
 				receiveOsc(msg[i][0], msg[i].splice(1));
