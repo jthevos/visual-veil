@@ -4,3 +4,4 @@ logs/**
 *.class
 *.sh
 node_modules
+notes.txt
