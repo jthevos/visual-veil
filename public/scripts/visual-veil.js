@@ -265,37 +265,11 @@ function mousePressed() {
 	}
 }
 
-function mapValue(value, min, max, minTarget, maxTarget) {
-	if (value < min || value > max) {
-		console.log('invalid range');
-	} else {
-		let normalizedValue = (value - min) / (max - min);
-		let result = normalizedValue * (maxTarget - minTarget) + minTarget;
-		return Math.trunc(result);
-	}
-}
-
 // OSC
-
 function receiveOsc(address, message) {
-	/*
-	This function handles the receipt of all OSC messages.
-	It performs two important operations. First, it retreives
-	the raw x and y coordinates from the Kinect. Second, it
-	sanitizes these coordinates. Once sanitized, the x/y
-	coordinates are sent to the view for display.
-	*/
-
-	if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
-
-		let rawX = abs(message[1]);
-		let rawY = abs(message[2]);
-
-		let x = mapValue(rawX, 100, 700, 1900, 0);
-		let y = mapValue(rawY, 100, 700, 0, 1900);
-
-		mouseX = x;
-		mouseY = y;
+	if (address == '/kuatro/processing/mediated' && message.typeTag() == 'ff') {
+		mouseX = message[1];
+		mouseY = message[2];
 	}
 }
 
