@@ -267,7 +267,7 @@ function mousePressed() {
 
 // OSC
 function receiveOsc(address, message) {
-	if (address == '/kuatro/processing/mediated' && message.typeTag() == 'ff') {
+	if (address == '/kuatro/processing/mediated') {
 		mouseX = message[1];
 		mouseY = message[2];
 	}
