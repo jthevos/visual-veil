@@ -62,10 +62,10 @@ def oscEvent(message):
       x = mapValue(x, 100, 700, 1900, 0 )
       y = mapValue(y, 100, 700, 0, 1000)
 
-      message = oscP5.OscMessage("/kuatro/processing/mediated")
-      message.add(x)
-      message.add(y)
-      osc.send(message, remote)
+      msg = oscP5.OscMessage("/kuatro/processing/mediated")
+      msg.add(x)
+      msg.add(y)
+      osc.send(msg, remote)
 
    elif message.typetag() == "si":
       print "in weird string int land again..."
