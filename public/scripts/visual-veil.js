@@ -300,7 +300,7 @@ function receiveOsc(address, message) {
 
 function setupOsc(oscPortIn, oscPortOut) {
 	console.log(oscPortIn, oscPortOut);
-	socket = io.connect('http://127.0.0.1:8083', { port: 8083, rememberTransport: false });
+	socket = io.connect('http://127.0.0.1:8081', { port: 8081, rememberTransport: false });
 	socket.on('connect', function() {
 		isConnected = true;
 		socket.emit('config', {
