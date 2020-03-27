@@ -288,14 +288,17 @@ function receiveOsc(address, message) {
 
 	console.log("received OSC: " + address + ", " + message);
 
-	// if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
-	//
-	// 	let rawX = abs(message.get(0).floatValue());
-	// 	let rawY = abs(message.get(1).floatValue());
-	//
-	// 	let x = mapValue(rawX, 100, 700, 1900, 0);
-	// 	let y = mapValue(rawY, 100, 700, 0, 1900);
-	// }
+	if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
+
+		let rawX = abs(message.get(0).floatValue());
+		let rawY = abs(message.get(1).floatValue());
+
+		let x = mapValue(rawX, 100, 700, 1900, 0);
+		let y = mapValue(rawY, 100, 700, 0, 1900);
+
+		mouseX = x;
+		mouseY = y;
+	}
 }
 
 function setupOsc(oscPortIn, oscPortOut) {
