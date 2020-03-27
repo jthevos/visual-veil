@@ -1,3 +1,5 @@
+# run it with: java -jar processing/processing-py.jar processing/oscMediator.py
+
 import random
 from math import *
 
