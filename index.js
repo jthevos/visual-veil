@@ -4,7 +4,7 @@ const express = require('express');
 const app = express();
 
 const osc = require('node-osc');
-const io = require('socket.io')(8083);
+const io = require('socket.io')(8081);
 
 let oscServer, oscClient;
 let isConnected = false;

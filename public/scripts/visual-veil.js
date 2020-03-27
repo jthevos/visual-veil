@@ -286,21 +286,22 @@ function receiveOsc(address, message) {
 	coordinates are sent to the view for display.
 	*/
 
-	console.log("received OSC: " + address + ", " + message);
+	if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
 
-	// if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
-	//
-	// 	let rawX = abs(message.get(0).floatValue());
-	// 	let rawY = abs(message.get(1).floatValue());
-	//
-	// 	let x = mapValue(rawX, 100, 700, 1900, 0);
-	// 	let y = mapValue(rawY, 100, 700, 0, 1900);
-	// }
+		let rawX = abs(message[1]);
+		let rawY = abs(message[2]);
+
+		let x = mapValue(rawX, 100, 700, 1900, 0);
+		let y = mapValue(rawY, 100, 700, 0, 1900);
+
+		mouseX = x;
+		mouseY = y;
+	}
 }
 
 function setupOsc(oscPortIn, oscPortOut) {
 	console.log(oscPortIn, oscPortOut);
-	socket = io.connect('http://127.0.0.1:8083', { port: 8083, rememberTransport: false });
+	socket = io.connect('http://127.0.0.1:8081', { port: 8081, rememberTransport: false });
 	socket.on('connect', function() {
 		isConnected = true;
 		socket.emit('config', {
@@ -309,7 +310,6 @@ function setupOsc(oscPortIn, oscPortOut) {
 		});
 	});
 	socket.on('message', function(msg) {
-		console.log("in .on message");
 		if (msg[0] == '#bundle') {
 			for (var i=2; i<msg.length; i++) {
 				receiveOsc(msg[i][0], msg[i].splice(1));
