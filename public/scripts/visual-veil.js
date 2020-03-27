@@ -286,12 +286,10 @@ function receiveOsc(address, message) {
 	coordinates are sent to the view for display.
 	*/
 
-	console.log("received OSC: " + address + ", " + message);
-
 	if (address == '/kuatro/processing' && message.typeTag() == 'ff') {
 
-		let rawX = abs(message.get(0).floatValue());
-		let rawY = abs(message.get(1).floatValue());
+		let rawX = abs(message[1]);
+		let rawY = abs(message[2]);
 
 		let x = mapValue(rawX, 100, 700, 1900, 0);
 		let y = mapValue(rawY, 100, 700, 0, 1900);
@@ -312,7 +310,6 @@ function setupOsc(oscPortIn, oscPortOut) {
 		});
 	});
 	socket.on('message', function(msg) {
-		console.log("in .on message");
 		if (msg[0] == '#bundle') {
 			for (var i=2; i<msg.length; i++) {
 				receiveOsc(msg[i][0], msg[i].splice(1));
