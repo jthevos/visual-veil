@@ -1,13 +1,13 @@
 // https://socket.io/docs/client-api/#Socket
+const io = require('socket.io')(8081);
 const path = require('path');
+const osc = require('node-osc');
 const express = require('express');
 const app = express();
 
-const osc = require('node-osc');
-const io = require('socket.io')(8081);
-
 let oscServer, oscClient;
 let isConnected = false;
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.listen(3000);
