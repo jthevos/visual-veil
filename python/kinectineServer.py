@@ -1,10 +1,10 @@
 # kuatroServer.py       Version  1.3     30-Oct-2017
 #     Kyle Stewart, David Johnson, Bill Manaris, and Seth Stoudenmier
 #
-# The Kuatro Server receives x, y, z coordinates, via OSC, of users in a being 
-# tracked in a space by one or more depth sensors, such as the Kinect.  
+# The Kuatro Server receives x, y, z coordinates, via OSC, of users in a being
+# tracked in a space by one or more depth sensors, such as the Kinect.
 # The data is received by one more more Kuatro Clients.
-# These data is placed in a normalized coordinate space (virtual world).  
+# These data is placed in a normalized coordinate space (virtual world).
 # The normalized data is also sent, via OSC, to one or more Kuatro Views,
 # as specified by the project's interaction design.
 #
@@ -18,8 +18,8 @@
 #     28-Oct-14:  Updated to only allow one connection per view (i.e. only one entry into the viewPort list)
 #     14-Aug-14:  Updated OSC Addresses to be constants
 #     13-Aug-14:  Updated Server so messages now require a unique client ID.  This allows
-#              the server to track coordinates from multiple devices.  
-# 
+#              the server to track coordinates from multiple devices.
+#
 #  TO DO:
 #
 
@@ -53,7 +53,7 @@ class KuatroServer():
       self.calibrators = []            # stores a list of the calibrators the server has created in the form [calibrator, isActiveCheckbox]
       self.deviceLights = []           # stores circle "lights" for each registered device that show data flow
 
-      self.viewInfo = []               # stores a tuple including the IP Address and Port of all registered view.  Used to ensure that that same view does not register multiple times. 
+      self.viewInfo = []               # stores a tuple including the IP Address and Port of all registered view.  Used to ensure that that same view does not register multiple times.
       self.viewPorts = []              # stores the OSC Port to all registered views
       self.deviceCalibrationData = {}  # stores calibration data from calibrators
       self.calibrating = False         # whether the server is currently calibrating or not
@@ -63,7 +63,7 @@ class KuatroServer():
       self.virtualMaxX = 1000
       self.virtualMaxY = 1000
       self.virtualMaxZ = 750    # Virtual World is 2D using X and Z values
-      
+
       self.verbose = verbose  # turn on logging of user tracking. 0 = Off, 1 = User Tracking Data, 2 = User Tracking plus Echo OSC Messages
 
 
@@ -76,7 +76,7 @@ class KuatroServer():
          # if verbose logging is set to 2 turn on echo message
          if verbose == 2:
             oscIn.onInput("/.*", self.echoMessage)
-         
+
          # the Client-to-Server API
          oscIn.onInput(KuatroServer.NEW_USER_MESSAGE, self.addUser)
          oscIn.onInput(KuatroServer.LOST_USER_MESSAGE, self.removeUser)
@@ -95,7 +95,7 @@ class KuatroServer():
       self.display = Display("Kuatro Server", 600, 600, 0, 0, Color.BLACK)
 
       # create Menu for calibration
-      calibrateMenu = Menu("Calibrate") 
+      calibrateMenu = Menu("Calibrate")
       calibrateMenu.addItemList(["Start", "Stop"], [self.calibrationStart, self.calibrationStop])
       self.display.addMenu(calibrateMenu)
 
@@ -108,10 +108,10 @@ class KuatroServer():
    #####################################
    ###### Kuatro Server Callbacks ######
    #####################################
-   
+
    # These methods coordinate user data input from the view into
-   # coordinates consistent with the virutal world.  And then send 
-   # the new data to all registered views.  
+   # coordinates consistent with the virutal world.  And then send
+   # the new data to all registered views.
 
    def echoMessage(self, message):
       '''Simply prints OSC address and arguments'''
@@ -148,8 +148,8 @@ class KuatroServer():
          virtualWorldUserID = self.nextUserID   # then get a new user ID for the virtual World
          self.nextUserID = self.nextUserID + 1  # increment user ID
 
-         self.deviceUsers[user] = virtualWorldUserID  # map user to virtual world ID 
-        
+         self.deviceUsers[user] = virtualWorldUserID  # map user to virtual world ID
+
          newX, newY, newZ = self.calibrateUserCoordinates(x, y, z, clientID)   # get new set of user coordinates calibrated to the Virtual World
          self.virtualUsers[virtualWorldUserID] = (newX, newY, newZ)            # update User dictionary with new user and tuple of user coordinates
 
@@ -157,8 +157,6 @@ class KuatroServer():
             print "Added User:", virtualWorldUserID, "Coords:", newX, newY, newZ
 
          self.sendMessage(KuatroServer.NEW_USER_MESSAGE, virtualWorldUserID, newX, newY, newZ)  # send message with calibrated user coordinates to registered views
-
-         
 
 
    def removeUser(self, message):
@@ -176,7 +174,7 @@ class KuatroServer():
 
       ##### Remove user from Virtual World
       if user in self.deviceUsers:                     # verify that user exists in virtual world
-         virtualWorldUserID = self.deviceUsers[user]      # then get the virtual world user ID           
+         virtualWorldUserID = self.deviceUsers[user]      # then get the virtual world user ID
          del self.virtualUsers[virtualWorldUserID]        # and remove user from user dictionaries
          del self.deviceUsers[user]
 
@@ -226,24 +224,25 @@ class KuatroServer():
          # set display background to GREEN
          self.display.setColor(Color.GREEN)
 
-      ##### Update User Coordinates      
+      ##### Update User Coordinates
       if user in self.deviceUsers:                           # verify that user exists in device users
 
-         virtualWorldUserID = self.deviceUsers[user]                           # then get the virtual world user ID    
+         virtualWorldUserID = self.deviceUsers[user]                           # then get the virtual world user ID
          newX, newY, newZ = self.calibrateUserCoordinates(x, y, z, clientID)   # get calibrated coordinates for user
          self.virtualUsers[virtualWorldUserID] = (newX, newY, newZ)            # add new coordinates user dictionary
 
          # send message with calibrated user coordinates
-         self.sendMessage(KuatroServer.JOINT_COORDINATES_MESSAGE, virtualWorldUserID, jointID, trackingState, newX, newY, newZ)  
+         self.sendMessage(KuatroServer.JOINT_COORDINATES_MESSAGE, virtualWorldUserID, jointID, trackingState, newX, newY, newZ)
 
          if self.verbose !=0:
             print "User:", virtualWorldUserID, "Joint:", jointID, "Coords:", newX, newY, newZ
 
+
    def echoHandState(self, message):
       ''' Sends the state of existing user's hand to View. The OSC Message
           should contain the values:
-               userID, hand, handState, clientID
-       '''
+             userID, hand, handState, clientID
+      '''
 
       args = message.getArguments()
       userID = args[0]
@@ -260,8 +259,8 @@ class KuatroServer():
 
    def registerDevice(self, message):
       ''' Registers a device with the Kuatro Server.  The OSC Message should
-          contain the values: 
-               clientID, sensorType
+          contain the values:
+             clientID, sensorType
       '''
 
       # parse the arguments from the OSC Message
@@ -292,14 +291,14 @@ class KuatroServer():
 
          if not dataFound: # if there was no calibration data found, inform the user they need to run the calibration process
             self.display.drawLabel("No calibration data found.  Please run calibration process.", 20, 20, Color.WHITE)
-         
+
          isActiveCheckbox = Checkbox("") # create a checkbox representing whether or not to include this device during calibration
          self.calibrators.append([calibrator, isActiveCheckbox])
 
          # add device to the display
          radius = 7
          horizontal = self.devices.index(clientID)*20 + 20
-      
+
          dataLight = Circle(horizontal+10, 525, radius, Color.GREEN, True) # a "light" which is green when this client receives data, grey otherwise
          timer = Timer(self.lightDelay, self.resetLight, [dataLight], True)  # continually turn light grey if no data coming in
          timer.start()
@@ -309,7 +308,7 @@ class KuatroServer():
          self.display.add(isActiveCheckbox, horizontal, 540)
 
          print "Client Registered:", clientID
-         
+
 
 
    # *** describe how this works - it's the heart of the View-to-Server API
@@ -324,19 +323,19 @@ class KuatroServer():
       ipAddress = args[0]
       port = args[1]
 
-      # When a view registers with the server an OSC Out port is created and added to the 
-      # list of ports.  When sending OSC messages, the server will send the same message 
-      # to all OSC Ports.  
+      # When a view registers with the server an OSC Out port is created and added to the
+      # list of ports.  When sending OSC messages, the server will send the same message
+      # to all OSC Ports.
 
       if (ipAddress, port) not in self.viewInfo:  # only add view if it is not already registered
-         try:     
-            self.viewInfo.append((ipAddress, port))          # add view details to 
+         try:
+            self.viewInfo.append((ipAddress, port))          # add view details to
             self.viewPorts.append(OscOut(ipAddress, port))   # configure OSC Out port and add to list of ports
             print "OSC Configured.  Sending messages to", ipAddress, "on", port
          except Exception, e:
             print e
             sys.exit(1)
-            
+
 
    ####################################
    ###### Calibration Process #########
@@ -362,10 +361,10 @@ class KuatroServer():
          isActiveCheckbox = calSet[1]
          if isActiveCheckbox.isChecked():
             calibrator.calibrationStart()
-         
+
 
    def calibrationStop(self):
-      ''' Callback function for the Menu Item, Stop.  Stops the Calbration process 
+      ''' Callback function for the Menu Item, Stop.  Stops the Calbration process
           and sends the updated information to the server '''
 
       # stop calibrating
@@ -388,11 +387,11 @@ class KuatroServer():
             self.calibrateDevice(data, clientID)                    # store calibration data to server
 
          self.instructions = self.display.drawLabel("Calibration complete and data saved", 20, 200, Color.WHITE)
-      
+
 
    def calibrateDevice(self, data, clientID):
-      '''Updates calibration data from calibrators so the Kuatro Server can 
-         normalize client data to Virtual World Coordinates. 
+      '''Updates calibration data from calibrators so the Kuatro Server can
+         normalize client data to Virtual World Coordinates.
          'data' should contain the following values:
                minX, minY, minZ, maxX, maxY, maxZ
       '''
@@ -421,7 +420,7 @@ class KuatroServer():
 
 
    def calibrateUserCoordinates(self, x, y, z, clientID):
-      '''Takes User Coordinate data from a device and translates it to Virtual World 
+      '''Takes User Coordinate data from a device and translates it to Virtual World
          coordinates'''
 
       ### Get Coordination Data ###
@@ -451,7 +450,7 @@ class KuatroServer():
       return newX, newY, newZ
 
 #####################################
-   
+
    def visualize(self, message):
       args = message.getArguments()
       print args
@@ -459,14 +458,14 @@ class KuatroServer():
       x = args[1]
       y = args[2]
       self.sendMessage(KuatroServer.PROCESSING_MESSAGE, userID, x,y)
-         
+
 
 #####################################
-         
+
    def resetLight(self, light):
       '''Resets a client's light to GRAY'''
       light.setColor(Color.GRAY)
-      
+
 
    def sendMessage(self, address, *args):
       '''Helper method to send OSC messages using OSC Out port.
