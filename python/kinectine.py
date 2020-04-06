@@ -8,7 +8,7 @@
 #
 #      Left hand  - timbre Vibraphone, scale diatonic, range C3-C4, rate 1 note / sec
 #
-#      Right hand - timbre Vibraphone, scale diatonic, range C3-C4, rate 1 note / sec 
+#      Right hand - timbre Vibraphone, scale diatonic, range C3-C4, rate 1 note / sec
 #
 # This instrument generates individual notes in succession based on
 # a user's hand orientation in 3D space. Each note is visually accompanied by
@@ -24,7 +24,7 @@
 # circle). Circle color corresponds to note pitch (the lower the
 # pitch, the darker the color, the higher the pitch the brighter the color).
 #
- 
+
 from gui import *
 from random import *
 from music import *
@@ -51,7 +51,7 @@ NOTE_DISTANCE_TRIGGER = 20  # how far to move hand away from body to start notes
 Play.setInstrument(VIBRAPHONE)   # set instrument
 
 SCALE       = MAJOR_SCALE        # scale used by instrument
-MIN_RANGE   = C2                 # lowest note 
+MIN_RANGE   = C2                 # lowest note
 MAX_RANGE   = C4                 # highest note
 DELAY_LEFT  = 1.0                # play one note per this many secs
 DELAY_RIGHT = 0.5                # play one note per this many secs
@@ -85,24 +85,20 @@ class Kinectine():
    JOINT_COORDINATES_MESSAGE = "/kuatro/jointCoordinates"
    HAND_STATE_MESSAGE = "/kuatro/handState"
    REGISTER_VIEW_MESSAGE = "/kuatro/registerView"
-   PROCESSING_MESSAGE = "/kuatro/processing"
 
    def __init__(self, incomingPort = 60606, kuatroServerIP = "localhost", kuatroServerOscPort = 50505, processingOscPort = 57111):
-   
+
       # parameters
       self.leftSpeed = 0     # speed of left hand
       self.rightSpeed = 0    # speed of right hand
       self.leftPitch = 0     # left hand pitch
       self.rightPitch = 0    # right hand pitch
-      
-      ##### create main display #####
-      self.display = Display("Clementine Circles", 1000, 800)
-      #self.display.hide()
 
-      # dictionary of Kinectine users 
+      # dictionary of Kinectine users
       # (key is a userID (as returned by Kinect), value is a KinectineUser object)
       self.kinectineUsers = {}
 
+      self.processingOscPort = processingOscPort
 
       ######### Server-to-View API ############
       try:
@@ -139,19 +135,19 @@ class Kinectine():
          print e
          sys.exit(1)
 
-      # Setup OSC Out and send the message to PROCESSING
-      try:
-         self.oscOutProcessing = OscOut(kuatroServerIP, processingOscPort)           # configure OSC Out port and add to list of ports
-         print "OSC Out Configured.  Sending messages to", kuatroServerIP, "on", kuatroServerOscPort
+      # # Setup OSC Out and send the message to PROCESSING
+      # try:
+      #    self.oscOutProcessing = OscOut(kuatroServerIP, processingOscPort)           # configure OSC Out port and add to list of ports
+      #    print "OSC Out Configured.  Sending messages to", kuatroServerIP, "on", kuatroServerOscPort
+      #
+      #    #self.oscOutProcessing.sendMessage(Kinectine.PROCESSING_MESSAGE, ipAddress, incomingPort)         # send osc message through osc port
+      #    print "\nSent message to:", kuatroServerIP
+      #    print "  Data:", ipAddress, incomingPort
+      #
+      # except Exception, e:
+      #    print e
+      #    sys.exit(1)
 
-         #self.oscOutProcessing.sendMessage(Kinectine.PROCESSING_MESSAGE, ipAddress, incomingPort)         # send osc message through osc port
-         print "\nSent message to:", kuatroServerIP
-         print "  Data:", ipAddress, incomingPort
-
-      except Exception, e:
-         print e
-         sys.exit(1)
-      
       print "Kinectine set up!"
 
    #####################################
@@ -160,7 +156,7 @@ class Kinectine():
 
    # These methods coordinate user data input from the view into
    # coordinates consistent with the virutal world
-   
+
    def echoMessage(self, message):
       '''Simply prints OSC address and arguments'''
 
@@ -172,7 +168,7 @@ class Kinectine():
       for i in range(len(args)):
          print ",Argument " + str(i) + ": " + str(args[i]),
       print
- 
+
    def addUser(self, message):
       ''' Callback function for NEW USER messages.  Adds a new user to the view '''
 
@@ -187,11 +183,11 @@ class Kinectine():
       if userID not in self.kinectineUsers.keys():  # is this a new user? (avoid duplicates)
 
          # yes, so add a new entry
-         self.kinectineUsers[ userID ] = KinectineUser( x, y, z, self.display )
+         self.kinectineUsers[ userID ] = KinectineUser( userID, x, y, z, self.processingOscPort)
 
          print "Added User:", userID, "Location:", x, y, z
 
-         
+
    def removeUser(self, message):
       ''' Callback function for LOST USER messages.  Removes the specified user from the view '''
 
@@ -200,7 +196,7 @@ class Kinectine():
       userID = args[0]
 
       # remove user from known users
-      if userID in self.kinectineUsers.keys():  # is this an existing user? 
+      if userID in self.kinectineUsers.keys():  # is this an existing user?
 
          # yes, so remove them
          del self.kinectineUsers[ userID ]
@@ -218,51 +214,35 @@ class Kinectine():
       hand = args[1]          # hand ("left" or "right")
       handState = args[2]     # hand state (0 for unknown, 1 for not tracked, 2 for open, 3 for closed, 4 for lasso)
 
-      
-      if userID in self.kinectineUsers.keys():  # is this an existing user? 
 
-         # pass hand and handState to corresponding KinectineUser object 
+      if userID in self.kinectineUsers.keys():  # is this an existing user?
+
+         # pass hand and handState to corresponding KinectineUser object
          # so that it can interpret what these may mean
          # (i.e., implement semantics of gestural language there, not here!)
-         self.kinectineUsers[ userID ].makeMusic( hand, handState )
+         self.kinectineUsers[ userID ].makeMusic( hand, handState, message)
+         self.kinectineUsers[ userID ].visualizeWithProcessing(message)
 
-   #################################################################################
 
-   def visualizeWithProcessing(self, message):
-      args = message.getArguments()
-      #print args
-      userID = args[0]        # which user (should be a known user)
-      x = args[1]
-      y = args[2]
-
-      
-      if userID in self.kinectineUsers.keys():  # is this an existing user? 
-
-         # let corresponding KinectineUser object handle things
-         #self.kinectineUsers[ userID ].updateJoints( jointID, x, y, z )
-         
-         self.oscOutProcessing.sendMessage(Kinectine.PROCESSING_MESSAGE, x,y)
-   #################################################################################
-
-         
    # callback function for JOINT_COORDINATES_MESSAGE
    def updateJoints(self, message):
       """Updates a particular user's joint data."""
 
       # parse arguments from the OSC message.
       args = message.getArguments()
-      userID = args[0]       
-      jointID = args[1] 
+      userID = args[0]
+      jointID = args[1]
       trackingState = args[2]
       x = args[3]
       y = args[4]
       z = args[5]
 
-      if userID in self.kinectineUsers.keys():  # is this an existing user? 
+      if userID in self.kinectineUsers.keys():  # is this an existing user?
 
          # let corresponding KinectineUser object handle things
          self.kinectineUsers[ userID ].updateJoints( jointID, x, y, z )
-         
+         self.kinectineUsers[ userID ].visualize(userID, jointID, x, y, z)
+
 
 
 #################################################
@@ -272,12 +252,28 @@ class Kinectine():
 class KinectineUser():
    """Encapsulates data and actions for a single, unique Kinectine user."""
 
-   def __init__(self, initialX, initialY, initialZ, display):
+   PROCESSING_MESSAGE = "/kuatro/processing"
 
+   def __init__(self, userID, initialX, initialY, initialZ, processingOscPort):
+
+      # remember userID for OSC messages
+      self.userID = userID
       # holds user joint data
-      self.jointData = {}    
+      self.jointData = {}
 
+      # make class aware of its engagement with the system.
+      self.engaged = None
 
+      self.oscOutProcessing = None
+
+      # Setup OSC Out and send the message to PROCESSING
+      try:
+         self.oscOutProcessing = OscOut('localhost', processingOscPort)           # configure OSC Out port and add to list of ports
+         print "OSC Out Configured.  Sending messages to", 'localhost', "on", processingOscPort
+
+      except Exception, e:
+         print e
+         sys.exit(1)
 # ***
 # * Pitch - height of user's hand relative to the shoulder.
 #   The higher the hand, the higher the pitch.
@@ -291,7 +287,7 @@ class KinectineUser():
       self.jointData[HAND_LEFT]      = [initialX, initialY, initialZ]
       self.jointData[SHOULDER_RIGHT] = [initialX, initialY, initialZ]
       self.jointData[ELBOW_RIGHT]    = [initialX, initialY, initialZ]
-      self.jointData[HAND_RIGHT]     = [initialX, initialY, initialZ]      
+      self.jointData[HAND_RIGHT]     = [initialX, initialY, initialZ]
 
       # hold speed and pitch (low to high) of left and right hands
       self.leftSpeed  = 1   # a small speed
@@ -310,7 +306,7 @@ class KinectineUser():
       # helper variables for implementing note rate
       self.leftHandNoteStartTime  = 0  # holds timestamp when last note was played for left hand
       self.rightHandNoteStartTime = 0  # holds timestamp when last note was played for right hand
-      
+
 
       # implement rate - here 1 note per second.
       # (the idea is to set a flag when a note is played, and wait until the proper time has passed
@@ -324,7 +320,7 @@ class KinectineUser():
       # define timer and start it (it allows playing a note once per delay millisecs
       #delay = 1000   # millisecs
       #self.soundRateTimer = Timer(delay, resetSoundOnFlag, [], True)
-      #self.soundRateTimer.start()  
+      #self.soundRateTimer.start()
 
 
    def updateJoints(self, jointID, x, y, z):
@@ -332,39 +328,39 @@ class KinectineUser():
 
       # NOTE: First time around, calculation of speed and pitch of hands will produce
       # non-sensical values, but we ignore that (for simplicity of code below)...
-      
-      # update the corresponding joint's position 
+
+      # update the corresponding joint's position
       self.jointData[ jointID ] = [x, y, z]
 
       # calculate left hand speed (if needed)
       if jointID == HAND_LEFT:
 
          # update last few points
-         #if len(self.lastFewPointsLeft) >= self.windowSize:  # is list full?
-         #   self.lastFewPointsLeft.pop(0)                    # remove oldest point
+         if len(self.lastFewPointsLeft) >= self.windowSize:  # is list full?
+           self.lastFewPointsLeft.pop(0)                    # remove oldest point
 
          # add latest point
-         #self.lastFewPointsLeft.append( [x, y, z] )                
-            
+         self.lastFewPointsLeft.append( [x, y, z] )
+
          # calculate speed (uses last few points)
-         ##self.leftSpeed = self.setSpeed( self.lastFewPointsLeft )
-         ##self.leftSpeed = min(self.leftSpeed, MAX_HAND_SPEED)   # filter out large speeds
+         self.leftSpeed = self.setSpeed( self.lastFewPointsLeft )
+         self.leftSpeed = min(self.leftSpeed, MAX_HAND_SPEED)   # filter out large speeds
 
          # calculate hand pitch
          self.leftPitch = self.setHandPitch( HAND_LEFT, SHOULDER_LEFT )
 
       elif jointID == HAND_RIGHT:
-            
+
          # update last few points
-         #if len(self.lastFewPointsRight) >= self.windowSize:  # is list full?
-         #   self.lastFewPointsRight.pop(0)                    # remove oldest point
+         if len(self.lastFewPointsRight) >= self.windowSize:  # is list full?
+           self.lastFewPointsRight.pop(0)                    # remove oldest point
 
          # add latest point
-         #self.lastFewPointsRight.append( [x, y, z] )                
+         self.lastFewPointsRight.append( [x, y, z] )
 
          # calculate speed (uses last few points)
-         ##self.rightSpeed = self.setSpeed( self.lastFewPointsRight )
-         ##self.rightSpeed = min(self.rightSpeed, MAX_HAND_SPEED)   # filter out large speeds
+         self.rightSpeed = self.setSpeed( self.lastFewPointsRight )
+         self.rightSpeed = min(self.rightSpeed, MAX_HAND_SPEED)   # filter out large speeds
 
          # calculate hand pitch
          self.rightPitch = self.setHandPitch( HAND_RIGHT, SHOULDER_RIGHT )
@@ -372,13 +368,13 @@ class KinectineUser():
 
    def setSpeed(self, lastFewPoints):
       """ Calculates how fast the hand is moving, i.e., speed. """
-      
+
       # calculate elapsed time between two Kinect frames (data captures)
-      elaspedTime = 1.0 / FRAMES_PER_SEC      
-   
+      elaspedTime = 1.0 / FRAMES_PER_SEC
+
       # calculate average distance travelled between last few points
       totalDiffX, totalDiffY, totalDiffZ = 0               # initialize difference accumulators
-      previousX, previousY, previousZ = lastFewPoints[0]   # priming read     
+      previousX, previousY, previousZ = lastFewPoints[0]   # priming read
       for currentX, currentY, currentZ in lastFewPoints[1:] :
 
          # calculate difference between two adjacent points
@@ -387,31 +383,31 @@ class KinectineUser():
          diffZ = currentZ - previousZ
 
          # accumulate this difference
-         totalDiffX = totalDiffX + diffX   
+         totalDiffX = totalDiffX + diffX
          totalDiffY = totalDiffY + diffY
          totalDiffZ = totalDiffZ + diffZ
 
          # grab next point
          previousX, previousY, previousZ = currentX, currentY, currentZ
-         
+
       # now, all points have been accumulated
       # let's average them
       avgDiffX = totalDiffX / len(lastFewPoints)
       avgDiffY = totalDiffY / len(lastFewPoints)
       avgDiffZ = totalDiffZ / len(lastFewPoints)
-         
+
       # calculate Euclidean distance between the two points
       distanceTraveled = math.sqrt( avgDiffX**2 + avgDiffY**2 + avgDiffZ**2 )
 
       # calculate speed
       speed = distanceTraveled / elaspedTime
-         
+
       return speed
-   
+
 
    def setHandPitch(self, hand, joint):
       """Calculates the pitch (low to high) of user's hand, based on two points"""
-      
+
       handX, handY, handZ    = self.jointData[hand]
       jointX, jointY, jointZ = self.jointData[joint]
 
@@ -419,18 +415,18 @@ class KinectineUser():
       #print "setHandPitch():"
       #print "   handX, handY, handZ =", handX, handY, handZ
       #print "   jointX, jointY, jointZ =", jointX, jointY, jointZ
-         
+
       dX = handX - jointX
       dY = handY - jointY
       dZ = handZ - jointZ
-         
+
       # find the angle of the user's arm (elbow to hand)
-      pitch = math.atan2(math.sqrt(dZ * dZ + dX * dX), dY) + math.pi   
+      pitch = math.atan2(math.sqrt(dZ * dZ + dX * dX), dY) + math.pi
 
       return pitch
- 
-   
-   def makeMusic(self, hand, handState ):
+
+
+   def makeMusic(self, hand, handState):
       """Plays notes / draws circles whenever a hand is extended beyond a certain distance."""
 
       # we make music only if hand is open
@@ -447,7 +443,7 @@ class KinectineUser():
         depth = abs(handZ - spineZ)
 
         # ***
-        #print depth 
+        #print depth
 
         # ensure depth is under 1000 (1 meter)
         #depth = min(depth, 1000)
@@ -456,12 +452,14 @@ class KinectineUser():
         if depth > NOTE_DISTANCE_TRIGGER:
            # implement note-playing rate for left hand
            now = time()
+           self.leftHandEngaged = True
            if now - self.leftHandNoteStartTime > DELAY_LEFT:   # time to play?
               self.leftHandNoteStartTime = now   # reset elapsed time
 
               # now generate corresponding notes and circles
               self.drawCircle( pitch, depth )
-
+           else:
+             self.leftHandEngaged = False
       # or, is it the right
       elif hand == "right":     # is this the right hand?
 
@@ -476,16 +474,20 @@ class KinectineUser():
         if depth > NOTE_DISTANCE_TRIGGER:
            # implement note-playing rate for right hand
            now = time()
+           self.rightHandEngaged = True
            if now - self.rightHandNoteStartTime > DELAY_RIGHT:   # time to play?
               self.rightHandNoteStartTime = now   # reset elapsed time
 
               # now generate corresponding notes and circles
               self.drawCircle( pitch, depth )
 
- 
+              # this is where the visualize code goes.
+        else:
+           self.rightHandEngaged = False
+
    def drawCircle(self, handPitch, handDepth):
       """Draws one circle and plays the corresponding note."""
- 
+
       # map hand pitch to note pitch
       #pitch = mapScale(handPitch*-100, -750, -250, 0, 127, SCALE)  # use scale
       pitch = mapScale(handPitch*-100, -750, -250, MIN_RANGE, MAX_RANGE, SCALE)  # use scale
@@ -495,20 +497,15 @@ class KinectineUser():
 
       # map hand speed to volume
       volume = mapValue(handDepth*-1, -1000, 0, MIN_VOLUME, MAX_VOLUME)
- 
-      # now create a circle in a random location
-      x = randint(0, self.display.getWidth())               # random circle x position
-      y = randint(0, self.display.getHeight())              # random circle y position
-      radius = mapValue(volume, MIN_VOLUME, MAX_VOLUME, MIN_CIRCLE, MAX_CIRCLE)  # map volume to radius
- 
-      # create color based on provided gradient
-      red, green, blue = CLEMENTINE_GRADIENT[pitch]
-      color = Color(red, green, blue)
-      c = Circle(x, y, radius, color, True)   # create filled circle
-      self.display.add(c)                     # add it to display
-      #self.display.removeAll()
 
       # yes, so play it
       Play.note(pitch, 0, MAX_NOTE_DURATION, volume)
 
 
+   def visualize(self, userID, jointID, x, y, z):
+      """
+      Sends OSC messages for visualization with Processing. px and py
+      represent the joint's previous x and y.
+      """
+      if self.leftHandEngaged:
+         self.oscOutProcessing.sendMessage(KinectineUser.PROCESSING_MESSAGE, x,y)
