@@ -1,11 +1,11 @@
 # kuatroKinectClient.py       Version 1.0     13-Aug-2014
 #     David Johnson, Bill Manaris, and Seth Stoudenmier
 #
-# The Kuatro Client tracks the x, y, z coordinates of mulitple users 
+# The Kuatro Client tracks the x, y, z coordinates of mulitple users
 # within range of a configured depth sensor.  The coordinates are sent via OSC messages
-# to the Kuatro Server for coordination within a Virtual World, as defined by the server.  
-# 
-#  Supported Controllers for the Kuatro Client are Microsoft Kinect, model 1414, 
+# to the Kuatro Server for coordination within a Virtual World, as defined by the server.
+#
+#  Supported Controllers for the Kuatro Client are Microsoft Kinect, model 1414,
 #  and the Asus Xtion Pro.
 #
 #  See README file for full instructions on using the Kuatro System
@@ -26,7 +26,7 @@ import socket
 
 # how often to get data from the Kinect (frames per second)
 # (increase to get data more often, but this slows down the system)
-FRAME_RATE = 30 
+FRAME_RATE = 30
 
 # which body joints to pull position data for (including a hand will send that hand's state as well)
 # choose from: SPINE_BASE, SPINE_MID, NECK, HEAD, SHOULDER_LEFT, ELBOW_LEFT, WRIST_LEFT, HAND_LEFT, SHOULDER_RIGHT, ELBOW_RIGHT, WRIST_RIGHT,
@@ -114,18 +114,18 @@ class KuatroKinectClient():
                     if jointID is HAND_LEFT:
                         leftHandState = body.hand_left_state
                         self.oscServer.send_message(KuatroKinectClient.HAND_STATE_MESSAGE, [userID, "left", leftHandState, self.clientID])
-                        self.oscServer.send_message(KuatroKinectClient.PROCESSING_MESSAGE, [userID, x, y, self.clientID])
+                        #self.oscServer.send_message(KuatroKinectClient.PROCESSING_MESSAGE, [userID, x, y, self.clientID])
 
                     if jointID is HAND_RIGHT:
                         rightHandState = body.hand_right_state
                         self.oscServer.send_message(KuatroKinectClient.HAND_STATE_MESSAGE, [userID, "right", rightHandState, self.clientID])
 
                     # this logic allows BasicView to work, but should probably be changed (should we include coordinate data with user lost/found?)
-                    if jointID is SPINE_BASE: 
+                    if jointID is SPINE_BASE:
                         if not self.was_tracked[userID]:  # and if the body wasn't already being tracked
                             self.addUser(userID, x, y, z)  # we found a new user
                             self.was_tracked[userID] = True # we now know this body has been tracked
-                    
+
                     # coordinates of 0, 0, 0 means user is temporarily lost
                     # reduce OSC messages by not sending if all 3 are 0
                     if x != 0 or y != 0 or z != 0:
@@ -136,19 +136,19 @@ class KuatroKinectClient():
             else:
                 if self.was_tracked[userID]:  # if the user is not being tracked but was before
                     self.removeUser(userID)  # we lost a user
-                
+
 
     ####################################
     ###### Calibration Process #########
     ####################################
 
     def calibrateWithServer(self):
-        ''' Calibrate the device with the Kuatro Server by finding the 
+        ''' Calibrate the device with the Kuatro Server by finding the
           minimum and maximum coordinate values that the device outputs '''
-        
+
         # hard-coded placeholder values for calibration, only use if the Calibrator isn't working
         self.oscServer.send_message(KuatroKinectClient.CALIBRATE_DEVICE_MESSAGE, [self.clientID, -3000, -3000, 0, 3000, 3000, 3000])
-    
+
     ####################################
     ######### Client Setup #############
     ####################################
@@ -162,7 +162,7 @@ class KuatroKinectClient():
             # To pull other types of Frames from the Kinect through PyKinect2, use
             # PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Body | PyKinectV2.FrameSourceTypes_Color | PyKinectV2.FrameSourceTypes_Infrared)
             # formatting. The possible FrameSourceTypes are enumerated in PyKinectV2.py
-            
+
             self.kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Body)
 
             # create list of booleans to say if a body WAS tracked, instantiate all to False
@@ -185,7 +185,7 @@ class KuatroKinectClient():
         '''Start the Client via a separate thread '''
 
         while self.isRunning:  # is the Kinect Running?
-            
+
             try:
                 if self.kinect.has_new_body_frame():  # then is there a new BodyFrame?
                     self.users = self.kinect.get_last_body_frame() # get the BodyFrame data

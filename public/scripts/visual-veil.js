@@ -155,7 +155,7 @@ function preload() {
 
 function setup() {
 	pixelDensity(1);
-	setupOsc(13000, 57111);
+	setupOsc(13000, 57777);
 
 	colors = ["#E69F66", "#DF843A", "#D8690F", "#B1560D", "#8A430A"];
 
@@ -184,7 +184,7 @@ function draw() {
 
 	translate(-width / 2, -height / 2);   // adjust for WEBGL's coordinate system
 
-	generate();
+	//generate();
 
 }
 
@@ -283,13 +283,12 @@ function setupOsc(oscPortIn, oscPortOut) {
 			client: { port: oscPortOut, host: 'http://127.0.0.1'}
 		});
 	});
-	socket.on('message', function(msg) {
-		if (msg[0] == '#bundle') {
-			for (var i=2; i<msg.length; i++) {
-				receiveOsc(msg[i][0], msg[i].splice(1));
+	socket.on('message', function(message) {
+		console.log('received osc message');
+		console.dir(message);
+		address = msg[0]
+		if (address == '/kuatro/processing/mediated') {
+				receiveOsc(address, message);
 			}
-		} else {
-			receiveOsc(msg[0], msg.splice(1));
-		}
 	});
 }

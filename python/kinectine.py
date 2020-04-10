@@ -183,6 +183,7 @@ class Kinectine():
       if userID not in self.kinectineUsers.keys():  # is this a new user? (avoid duplicates)
 
          # yes, so add a new entry
+         # <!> I dont like passing processing port here.
          self.kinectineUsers[ userID ] = KinectineUser( userID, x, y, z, self.processingOscPort)
 
          print "Added User:", userID, "Location:", x, y, z
@@ -220,8 +221,7 @@ class Kinectine():
          # pass hand and handState to corresponding KinectineUser object
          # so that it can interpret what these may mean
          # (i.e., implement semantics of gestural language there, not here!)
-         self.kinectineUsers[ userID ].makeMusic( hand, handState, message)
-         self.kinectineUsers[ userID ].visualizeWithProcessing(message)
+         self.kinectineUsers[ userID ].makeMusic( hand, handState)
 
 
    # callback function for JOINT_COORDINATES_MESSAGE
@@ -241,7 +241,7 @@ class Kinectine():
 
          # let corresponding KinectineUser object handle things
          self.kinectineUsers[ userID ].updateJoints( jointID, x, y, z )
-         self.kinectineUsers[ userID ].visualize(userID, jointID, x, y, z)
+         self.kinectineUsers[ userID ].visualize( userID, jointID, x, y, z )
 
 
 
@@ -250,7 +250,10 @@ class Kinectine():
 #################################################
 
 class KinectineUser():
-   """Encapsulates data and actions for a single, unique Kinectine user."""
+   """Encapsulates data and actions for a single, unique Kinectine user.
+   This class is also responsible for informing the rest of the system
+   when the represented user is engaged.
+   """
 
    PROCESSING_MESSAGE = "/kuatro/processing"
 
@@ -265,13 +268,16 @@ class KinectineUser():
       self.engaged = None
 
       self.oscOutProcessing = None
-
+      #self.oscOutProcessing = OscOut('localhost', processingOscPort)           # configure OSC Out port and add to list of ports
       # Setup OSC Out and send the message to PROCESSING
+      print "pre-try"
       try:
-         self.oscOutProcessing = OscOut('localhost', processingOscPort)           # configure OSC Out port and add to list of ports
+         print "in try"
+         self.oscOutProcessing = OscOut('192.168.1.113', processingOscPort)           # configure OSC Out port and add to list of ports
          print "OSC Out Configured.  Sending messages to", 'localhost', "on", processingOscPort
 
       except Exception, e:
+         print "oh man"
          print e
          sys.exit(1)
 # ***
@@ -301,7 +307,6 @@ class KinectineUser():
       #self.windowSize         = 6   # how many points to remember
 
       # remember display to draw circles on
-      self.display = display
 
       # helper variables for implementing note rate
       self.leftHandNoteStartTime  = 0  # holds timestamp when last note was played for left hand
@@ -335,16 +340,16 @@ class KinectineUser():
       # calculate left hand speed (if needed)
       if jointID == HAND_LEFT:
 
-         # update last few points
-         if len(self.lastFewPointsLeft) >= self.windowSize:  # is list full?
-           self.lastFewPointsLeft.pop(0)                    # remove oldest point
-
-         # add latest point
-         self.lastFewPointsLeft.append( [x, y, z] )
-
-         # calculate speed (uses last few points)
-         self.leftSpeed = self.setSpeed( self.lastFewPointsLeft )
-         self.leftSpeed = min(self.leftSpeed, MAX_HAND_SPEED)   # filter out large speeds
+         # # update last few points
+         # if len(self.lastFewPointsLeft) >= self.windowSize:  # is list full?
+         #   self.lastFewPointsLeft.pop(0)                    # remove oldest point
+         #
+         # # add latest point
+         # self.lastFewPointsLeft.append( [x, y, z] )
+         #
+         # # calculate speed (uses last few points)
+         # self.leftSpeed = self.setSpeed( self.lastFewPointsLeft )
+         # self.leftSpeed = min(self.leftSpeed, MAX_HAND_SPEED)   # filter out large speeds
 
          # calculate hand pitch
          self.leftPitch = self.setHandPitch( HAND_LEFT, SHOULDER_LEFT )
@@ -352,15 +357,15 @@ class KinectineUser():
       elif jointID == HAND_RIGHT:
 
          # update last few points
-         if len(self.lastFewPointsRight) >= self.windowSize:  # is list full?
-           self.lastFewPointsRight.pop(0)                    # remove oldest point
-
-         # add latest point
-         self.lastFewPointsRight.append( [x, y, z] )
-
-         # calculate speed (uses last few points)
-         self.rightSpeed = self.setSpeed( self.lastFewPointsRight )
-         self.rightSpeed = min(self.rightSpeed, MAX_HAND_SPEED)   # filter out large speeds
+         # if len(self.lastFewPointsRight) >= self.windowSize:  # is list full?
+         #   self.lastFewPointsRight.pop(0)                    # remove oldest point
+         #
+         # # add latest point
+         # self.lastFewPointsRight.append( [x, y, z] )
+         #
+         # # calculate speed (uses last few points)
+         # self.rightSpeed = self.setSpeed( self.lastFewPointsRight )
+         # self.rightSpeed = min(self.rightSpeed, MAX_HAND_SPEED)   # filter out large speeds
 
          # calculate hand pitch
          self.rightPitch = self.setHandPitch( HAND_RIGHT, SHOULDER_RIGHT )
@@ -435,55 +440,55 @@ class KinectineUser():
       # yes, so decide which hand we are using
       if hand == "left":        # is this the left hand?
 
-        # yes, so use corresponding pitch and depth
-        pitch = self.leftPitch
-        #depth = self.jointData[ HAND_LEFT ][2] # the Z value
-        handZ = self.jointData[HAND_LEFT][2]
-        spineZ = self.jointData[SPINE_BASE][2]
-        depth = abs(handZ - spineZ)
+         # yes, so use corresponding pitch and depth
+         pitch = self.leftPitch
+         #depth = self.jointData[ HAND_LEFT ][2] # the Z value
+         handZ = self.jointData[HAND_LEFT][2]
+         spineZ = self.jointData[SPINE_BASE][2]
+         depth = abs(handZ - spineZ)
 
-        # ***
-        #print depth
+         # ***
+         #print depth
 
-        # ensure depth is under 1000 (1 meter)
-        #depth = min(depth, 1000)
+         # ensure depth is under 1000 (1 meter)
+         #depth = min(depth, 1000)
 
-        # if hand has moved far enough (penetrated into the "veil" that separates), play a note
-        if depth > NOTE_DISTANCE_TRIGGER:
-           # implement note-playing rate for left hand
-           now = time()
-           self.leftHandEngaged = True
-           if now - self.leftHandNoteStartTime > DELAY_LEFT:   # time to play?
-              self.leftHandNoteStartTime = now   # reset elapsed time
+         # if hand has moved far enough (penetrated into the "veil" that separates), play a note
+         if depth > NOTE_DISTANCE_TRIGGER:
+            # implement note-playing rate for left hand
+            now = time()
+            self.leftHandEngaged = True
+            if now - self.leftHandNoteStartTime > DELAY_LEFT:   # time to play?
+               self.leftHandNoteStartTime = now   # reset elapsed time
 
-              # now generate corresponding notes and circles
-              self.drawCircle( pitch, depth )
-           else:
-             self.leftHandEngaged = False
+               # now generate corresponding notes and circles
+               self.drawCircle( pitch, depth )
+         else:
+            self.leftHandEngaged = False
       # or, is it the right
       elif hand == "right":     # is this the right hand?
 
-        # yes, so use corresponding pitch and depth
-        pitch = self.rightPitch
-        #depth = self.jointData[ HAND_RIGHT ][2] # the Z value
-        handZ = self.jointData[HAND_RIGHT][2]
-        spineZ = self.jointData[SPINE_BASE][2]
-        depth = abs(handZ - spineZ)
+         # yes, so use corresponding pitch and depth
+         pitch = self.rightPitch
+         #depth = self.jointData[ HAND_RIGHT ][2] # the Z value
+         handZ = self.jointData[HAND_RIGHT][2]
+         spineZ = self.jointData[SPINE_BASE][2]
+         depth = abs(handZ - spineZ)
 
-        # if hand has moved far enough (penetrated into the "veil" that separates), play a note
-        if depth > NOTE_DISTANCE_TRIGGER:
-           # implement note-playing rate for right hand
-           now = time()
-           self.rightHandEngaged = True
-           if now - self.rightHandNoteStartTime > DELAY_RIGHT:   # time to play?
-              self.rightHandNoteStartTime = now   # reset elapsed time
+         # if hand has moved far enough (penetrated into the "veil" that separates), play a note
+         if depth > NOTE_DISTANCE_TRIGGER:
+            # implement note-playing rate for right hand
+            now = time()
+            self.rightHandEngaged = True
+            if now - self.rightHandNoteStartTime > DELAY_RIGHT:   # time to play?
+               self.rightHandNoteStartTime = now   # reset elapsed time
 
-              # now generate corresponding notes and circles
-              self.drawCircle( pitch, depth )
+               # now generate corresponding notes and circles
+               self.drawCircle( pitch, depth )
 
               # this is where the visualize code goes.
-        else:
-           self.rightHandEngaged = False
+         else:
+            self.rightHandEngaged = False
 
    def drawCircle(self, handPitch, handDepth):
       """Draws one circle and plays the corresponding note."""
@@ -507,5 +512,9 @@ class KinectineUser():
       Sends OSC messages for visualization with Processing. px and py
       represent the joint's previous x and y.
       """
-      if self.leftHandEngaged:
-         self.oscOutProcessing.sendMessage(KinectineUser.PROCESSING_MESSAGE, x,y)
+      self.oscOutProcessing.sendMessage(KinectineUser.PROCESSING_MESSAGE, 300,330)
+      # if self.leftHandEngaged:
+      #    print "Left hand engaged"
+      #    self.oscOutProcessing.sendMessage(KinectineUser.PROCESSING_MESSAGE, x,y)
+      # else:
+      #    print "Left Hand Not engaged!"

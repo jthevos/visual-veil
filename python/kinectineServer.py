@@ -40,7 +40,6 @@ class KuatroServer():
    REGISTER_DEVICE_MESSAGE = "/kuatro/registerDevice"
    CALIBRATE_DEVICE_MESSAGE = "/kuatro/calibrateDevice"
    REGISTER_VIEW_MESSAGE = "/kuatro/registerView"
-   PROCESSING_MESSAGE = "/kuatro/processing"
 
    def __init__(self, port = 50505, verbose = 0):
 
@@ -83,7 +82,6 @@ class KuatroServer():
          oscIn.onInput(KuatroServer.JOINT_COORDINATES_MESSAGE, self.handleUserData)
          oscIn.onInput(KuatroServer.HAND_STATE_MESSAGE, self.echoHandState)
          oscIn.onInput(KuatroServer.REGISTER_DEVICE_MESSAGE, self.registerDevice)
-         oscIn.onInput(KuatroServer.PROCESSING_MESSAGE, self.visualize)
 
          # the View-to-Server API
          oscIn.onInput(KuatroServer.REGISTER_VIEW_MESSAGE, self.registerView)
@@ -396,6 +394,8 @@ class KuatroServer():
                minX, minY, minZ, maxX, maxY, maxZ
       '''
 
+      ### add a calibration file so we don't have to keep resetting it?
+
       # parse arguments from data array
       minX = data[0]
       minY = data[1]
@@ -449,18 +449,6 @@ class KuatroServer():
 
       return newX, newY, newZ
 
-#####################################
-
-   def visualize(self, message):
-      args = message.getArguments()
-      print args
-      userID = args[0]        # which user (should be a known user)
-      x = args[1]
-      y = args[2]
-      self.sendMessage(KuatroServer.PROCESSING_MESSAGE, userID, x,y)
-
-
-#####################################
 
    def resetLight(self, light):
       '''Resets a client's light to GRAY'''
