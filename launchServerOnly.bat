@@ -1,0 +1,1 @@
+jython -i %cd%\python\kinectineBegin.py

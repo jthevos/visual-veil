@@ -6,6 +6,6 @@
 :: %cd% = current directory
 
 start cmd /k "TIMEOUT 10 && python %cd%\python\kinectineClient.py"
-start cmd /k "java -jar %cd%\processing\processing-py.jar %cd%\processing\oscMediator.py"
-start cmd /k "nodemon %cd%\index.js"
+start cmd /k "TIMEOUT 10 && java -jar %cd%\processing_osc\processing-py.jar %cd%\processing_osc\processing_osc.py"
+start cmd /k "TIMEOUT 10 && nodemon %cd%\index.js"
 jython -i %cd%\python\kinectineBegin.py
